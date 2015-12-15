@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="jquery/jquery-2.1.4.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <title>Barclays Premier League</title>
+
+    <style type="text/css">
+        #users {
+            border-collapse: collapse;
+        }
+
+        body {
+            background-image: url(images/soccer.jpg);
+            -moz-background-size: cover;
+            -webkit-background-size: cover;
+            background-size: cover;
+            background-position: top center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed;
+        }
+
+        #users tr:nth-child(even) {
+            background: #CCC
+        }
+
+        #users tr:nth-child(odd) {
+            background: #FFF
+        }
+
+        #users th, td {
+            text-align: left;
+            padding: 4px;
+            font-family: "Roboto Light", sans-serif;
+            font-size: medium;
+        }
+
+        #maindiv {
+            margin-left: 30px;
+            margin-top: 30px;
+            font-family: "Roboto Medium", sans-serif;
+            font-size: large;
+            float: left;
+        }
+
+        #rightdiv {
+            float: right;
+            margin-top: 329px;
+            margin-right: 200px;
+        }
+
+        .btn-success {
+            width: 477px;
+            font-family: "Roboto Medium", sans-serif;
+            font-size: large;
+        }
+
+        input {
+            text-align: center;
+            width: 40px;
+            border-radius: 3px;
+            border: 1px solid;
+            cursor: pointer;
+            font-family: "Roboto Light", sans-serif;
+            font-size: medium;
+            margin-bottom: 2px;
+        }
+
+        select {
+            cursor: pointer;
+            padding: 1px;
+            border-radius: 3px;
+            border: 1px solid;
+            font-family: "Roboto Light", sans-serif;
+            font-size: medium;
+        }
+
+    </style>
+
+    <script>
+        $(document).ready(function () {
+
+            var $clubs = ["Arsenal", "Aston Villa", "Chelsea", "Crystal Palace", "Everton", "Leicester City",
+                "Liverpool", "Manchester City", "Manchester United", "Newcastle United", "Norwich City", "Southampton",
+                "Stoke City", "Sunderland", "Tottenham Hotspur", "Watford", "West Bromwich Albion", "West Ham United"];
+            var $contor = 1;
+
+            getLeagueTable();
+            populateCombosDiv();
+
+            $(".btn-success").on("click", function () {
+                var $teams = [];
+                var $team = '', $score = '';
+                var $scores = [];
+                for (var i = 1; i <= 18; i++) {
+                    $team = "#club" + i.toString();
+                    $score = "#goals" + i.toString();
+                    $teams.push($($team).val());
+                    $scores.push($($score).val());
+                }
+
+                if (checkScores($scores)) {
+                    if (checkTeams($teams)) {
+                        //all good
+                        var jsonTeams = JSON.stringify($teams);
+                        var jsonScores = JSON.stringify($scores);
+                        $.ajax({
+                            url: "serverside/updateLeagueTable.php",
+                            type: 'GET',
+                            data: {teams: jsonTeams, scores: jsonScores},
+                            success: function () {
+                                getLeagueTable();
+                            }
+                        });
+                    }
+                    else {
+                        alert("Check inputs!\nTeams have to be uniques in one stage!");
+                    }
+                }
+                else {
+                    alert("Check inputs!\nScores have to be inserted!");
+                }
+
+            });
+
+            function getUnique(inputArray) {
+                var outputArray = [];
+                for (var i = 0; i < inputArray.length; i++) {
+                    if ((jQuery.inArray(inputArray[i], outputArray)) == -1) {
+                        outputArray.push(inputArray[i]);
+                    }
+                }
+                return outputArray;
+            }
+
+            function checkTeams($teams) {
+                return $teams.filter(Boolean).length == $teams.length && getUnique($teams).length == $teams.length;
+            }
+
+            function checkScores($scores) {
+                return $scores.filter(Boolean).length == $scores.length;
+            }
+
+            function populateCombos() {
+
+                var comboHTML = '';
+                var $selectName = "club" + $contor;
+
+                comboHTML += "<select id='" + $selectName + "''>";
+                comboHTML += "<option value='' disabled selected>Select team...</option>";
+
+                $.each($clubs, function (i, item) {
+                    comboHTML += "<option value='" + item + "'>" + item + "</option>";
+                });
+                comboHTML += "</select>";
+                $contor++;
+                return comboHTML;
+            }
+
+            function populateCombosDiv() {
+                var comboDivHTML = '';
+
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57' size='1' id='goals1' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals2'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text'  maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57' size='1' id='goals3' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals4'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  size='1' id='goals5' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals6'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  size='1' id='goals7' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals8'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  size='1' id='goals9' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals10'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  size='1' id='goals11' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals12'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  size='1' id='goals13' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals14'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  size='1' id='goals15' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals16'> " + populateCombos() + "<br>";
+                comboDivHTML += populateCombos() + " <input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  size='1' id='goals17' placeholder='0-9'>" + " - " + "<input type='text' maxlength='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'  placeholder='0-9' size='1' id='goals18'> " + populateCombos() + "<br>";
+                $('#combosdiv').hide();
+                $('#combosdiv').append(comboDivHTML);
+                $('#combosdiv').show();
+            }
+
+            function getLeagueTable() {
+                $('#users').hide();
+                $.getJSON(
+                        "serverside/getLeagueTable.php",
+                        renderTable
+                );
+            }
+
+            function renderTable(data) {
+                var trHTML = '';
+                var $stage = '';
+                trHTML += '<tr><th>CLUB</th><th width="50px">Won</th><th>Drawn</th><th width="50px">Lost</th>' +
+                        '<th width="50px">GF</th><th width="50px">GA</th><th>Played</th><th>Points</th></tr>';
+                $.each(data, function (i, item) {
+                    trHTML += '<tr><td>' + item.club + '</td><td>' + item.wins + '</td><td>' + item.drawn +
+                            '</td><td>' + item.loss + '</td><td>' + item.GF + '</td><td>' + item.GA +
+                            '</td><td>' + item.played + '</td><td>' + item.points + '</td></tr>';
+                    $stage = item.played + 1;
+                    $clubs.push(item.club);
+                });
+
+                $('#users').html(trHTML);
+                $('#users').show();
+                $(".btn-success").html("SAVE  STAGE  " + $stage + "  RESULTS");
+            }
+
+        });
+    </script>
+</head>
+<body>
+
+<div id="maindiv">
+    <table id="users" border="1">
+    </table>
+</div>
+
+<div id="rightdiv">
+    <div id="combosdiv">
+    </div>
+    <button type="submit" class="btn btn-success" name='submit'></button>
+</div>
+
+</body>
+</html>

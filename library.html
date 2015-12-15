@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="jquery/jquery-2.1.4.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        #users {
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            width: 110px;
+        }
+
+        body {
+            background-image: url(images/bg.jpg);
+            -moz-background-size: cover;
+            -webkit-background-size: cover;
+            background-size: cover;
+            background-position: top center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed;
+        }
+
+        #users tr:nth-child(even) {
+            background: #CCC
+        }
+
+        #users tr:nth-child(odd) {
+            background: #FFF
+        }
+
+        #details tr:nth-child(even) {
+            background: #BBB
+        }
+
+        #details tr:nth-child(odd) {
+            background: #DDD
+        }
+
+        #users th, td {
+            text-align: left;
+            padding: 8px;
+            font-family: "Roboto Medium", sans-serif;
+            font-size: medium;
+        }
+
+        #maindiv {
+            margin-left: 330px;
+            margin-top: 160px;
+            font-family: "Roboto Medium", sans-serif;
+            font-size: large;
+            float: left;
+        }
+
+        #rightdiv {
+            float: right;
+            margin-right: 470px;
+            margin-top: 146px;
+        }
+
+        h4 {
+            font-family: "Roboto Medium", sans-serif;
+            font-size: large;
+            color: white;
+        }
+
+        #tit {
+            color: white;
+        }
+
+        #users td a {
+            display: block;
+            position: relative
+        }
+
+        #xocell {
+            cursor: pointer;
+        }
+
+        .btn-success {
+            margin-top: 10px;
+            margin-left: 229px;
+        }
+    </style>
+    <title>Library Management</title>
+    <script>
+        $(document).ready(function () {
+            var $oc = '';
+            var $va = '';
+            var $em = '';
+            $(".btn-success").attr('disabled', 'disabled');
+            $('#users').hide();
+            $.getJSON(
+                    "serverside/getUsers.php",
+                    renderTable
+            );
+
+            function renderTable(data) {
+                var trHTML = '';
+                $.each(data, function (i, item) {
+                    trHTML += '<tr><td class="pirelli" id="xocell">' + item.username + '</td></tr>';
+                });
+
+                $('#users').append(trHTML);
+                $('#users').show();
+
+                bindOnClick();
+            }
+
+            $(".ocupatia").on('keyup', function () {
+                $(".btn-success").removeAttr('disabled');
+            });
+
+            $(".varsta").on('keyup', function () {
+                $(".btn-success").removeAttr('disabled');
+            });
+
+            $(".email").on('keyup', function () {
+                $(".btn-success").removeAttr('disabled');
+            });
+
+            function bindOnClick() {
+                $(".pirelli").on("click", function () {
+                    if ($('#ocupatia').val() != $oc || $('#varsta').val() != $va || $('#email').val() != $em) {
+                        if (confirm("Changes not saved!") == true) {
+                            $(".btn-success").attr('disabled', 'disabled');
+                            $.getJSON("serverside/getUserInfo.php", {username: this.innerHTML}, renderForm);
+                        }
+                    }
+                    else {
+                        $(".btn-success").attr('disabled', 'disabled');
+                        $.getJSON("serverside/getUserInfo.php", {username: this.innerHTML}, renderForm);
+                    }
+                });
+            }
+
+//            $("#ocupatia").change(function () {
+//                if ($(this).val() != '') {
+//                    $(".btn-success").removeAttr('disabled');
+//                }
+//            });
+//
+//            $("#varsta").change(function () {
+//                if ($(this).val() != '') {
+//                    $(".btn-success").removeAttr('disabled');
+//                }
+//            });
+//
+//            $("#email").change(function () {
+//                if ($(this).val() != '') {
+//                    $(".btn-success").removeAttr('disabled');
+//                }
+//            });
+
+            function renderForm(data) {
+                $.each(data, function (i, item) {
+                    $('#ocupatia').val(item.ocupatia);
+                    $oc = item.ocupatia;
+                    $('#varsta').val(item.varsta);
+                    $va = item.varsta;
+                    $('#email').val(item.email);
+                    $em = item.email;
+                    $('h4').text(item.username);
+                });
+
+            }
+
+            $(".btn-success").on("click", function () {
+                if (Math.floor($('#varsta').val()) == $('#varsta').val() && $.isNumeric($('#varsta').val())) {
+                    $.ajax({
+                        url: 'serverside/editUser.php',
+                        type: 'post',
+                        data: {
+                            username: $('h4').text(),
+                            ocupatia: $('#ocupatia').val(),
+                            varsta: $('#varsta').val(),
+                            email: $('#email').val()
+                        }
+                    });
+                    $oc = $('#ocupatia').val();
+                    $va = $('#varsta').val();
+                    $em = $('#email').val();
+                    $(".btn-success").attr('disabled', 'disabled');
+                    tempAlert("Updated", 3000);
+                }
+                else {
+                    tempAlert("Varsta int!", 3000);
+                }
+            });
+
+            function tempAlert(msg, duration) {
+                var el = document.createElement("div");
+                el.setAttribute("style", "font-family:Roboto Black,sans-serif;font-size:x-large;color:#00CC66;position:absolute;top:52%;left:53%;");
+                el.innerHTML = msg;
+                setTimeout(function () {
+                    el.parentNode.removeChild(el);
+                }, duration);
+                document.body.appendChild(el);
+            }
+        });
+    </script>
+</head>
+<body>
+
+<div id="maindiv">
+    <div id="tit">Library Users:</div>
+    <table id="users" border="1">
+        <tr>
+            <th>Username</th>
+        </tr>
+    </table>
+</div>
+
+<div id="rightdiv">
+    <h4></h4>
+    <table id="details">
+        <tr>
+            <td style="text-align:right">Ocupatia:</td>
+            <td><label>
+                <input type="text" size='20' name='ocupatia' id="ocupatia" class="ocupatia">
+            </label></td>
+        </tr>
+        <tr>
+            <td style="text-align:right">Varsta:</td>
+            <td><label>
+                <input type="text" size='20' name='varsta' id="varsta" class="varsta">
+            </label></td>
+        </tr>
+        <tr>
+            <td style="text-align:right">Email:</td>
+            <td><label>
+                <input type="text" size='20' name='email' id="email" class="email">
+            </label></td>
+        </tr>
+    </table>
+    <button type="submit" class="btn btn-success" name='submit'>Save</button>
+</div>
+
+</body>
+</html>
